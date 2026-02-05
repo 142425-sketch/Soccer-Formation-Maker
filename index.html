@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전략 보드 프로 - AI 포지션 추천 및 FB 포메이션</title>
+    <title>전략 보드 프로 - 텍스트 정렬 최종 수정</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -22,13 +22,13 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
+        #capture-area {
+            position: relative;
+            background-color: #09090b;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
         }
 
         .pitch {
@@ -65,50 +65,63 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 60px;
+            width: 90px;
             z-index: 10;
-            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: top 0.5s ease, left 0.5s ease;
         }
-        .player-node:hover { z-index: 1000; }
-
-        @media (min-width: 768px) { .player-node { width: 80px; } }
 
         .player-visual {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: white;
             color: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-weight: 800;
-            border: 2px solid #ef4444;
+            font-weight: 900;
+            border: 2.5px solid #ef4444;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            font-size: 12px;
+            font-size: 11px;
             position: relative;
             z-index: 2;
         }
-        @media (min-width: 768px) { .player-visual { width: 44px; height: 44px; font-size: 14px; border-width: 3px; } }
 
-        .is-empty .player-visual {
-            background: rgba(0,0,0,0.3);
-            border: 2px dashed rgba(255,255,255,0.4);
-            color: rgba(255,255,255,0.4);
-        }
+        /* 이름표: Flexbox를 사용하여 수직/수평 중앙 정렬 강제 */
         .player-label {
-            margin-top: 4px;
-            background: rgba(0, 0, 0, 0.8);
+            margin-top: 5px;
+            background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 2px 6px;
+            width: 70px;
+            height: 22px;
             border-radius: 4px;
-            font-size: 9px;
-            font-weight: 600;
-            white-space: nowrap;
-            max-width: 70px;
+            font-size: 10px;
+            font-weight: 700;
+            z-index: 2;
+            padding: 0 4px;
+            
+            /* 정중앙 정렬 핵심 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            
+            line-height: normal; /* line-height 초기화 */
             overflow: hidden;
             text-overflow: ellipsis;
-            z-index: 2;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) { 
+            .player-visual { width: 44px; height: 44px; font-size: 12px; }
+            .player-label { font-size: 11px; height: 26px; width: 80px; }
+        }
+
+        .is-empty .player-visual {
+            background: rgba(0,0,0,0.4);
+            border: 2px dashed rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.4);
         }
 
         .spec-popup {
@@ -123,17 +136,11 @@
             display: none;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
             z-index: 100;
-            pointer-events: auto;
         }
-        .spec-popup-top { bottom: 100%; margin-bottom: 5px; }
-        .spec-popup-bottom { top: 100%; margin-top: 5px; }
-        .spec-popup::before {
-            content: "";
-            position: absolute;
-            top: -20px; bottom: -20px; left: -20px; right: -20px;
-            z-index: -1;
-        }
+        .spec-popup-top { bottom: 100%; margin-bottom: 8px; }
+        .spec-popup-bottom { top: 100%; margin-top: 8px; }
         .player-node:hover .spec-popup { display: block; }
+        
         .spec-row {
             display: flex;
             justify-content: space-between;
@@ -151,7 +158,6 @@
         
         .view-container { display: none; }
         #team-name-display { display: none; }
-
         .mode-view { display: none; }
         .mode-edit { display: flex; }
         .readonly-mode .mode-view { display: flex; }
@@ -163,15 +169,16 @@
             position: fixed;
             top: 20px; left: 50%;
             transform: translateX(-50%);
-            background: #22c55e;
+            background: #3b82f6;
             color: white;
             padding: 10px 20px;
             border-radius: 99px;
             font-weight: bold; font-size: 13px;
             display: none; z-index: 2000;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
@@ -182,23 +189,23 @@
     <div id="toast">복사되었습니다!</div>
 
     <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
-        <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
             <div class="flex-1">
                 <input type="text" id="team-name-input" placeholder="팀 이름을 입력하세요" value="My Team" class="bg-transparent border-b border-zinc-800 outline-none focus:border-white text-lg font-black italic tracking-tighter text-white uppercase w-full max-w-[200px] mb-0.5">
                 <h2 id="team-name-display" class="text-lg font-black italic tracking-tighter text-white uppercase mb-0.5">My Team</h2>
                 <div class="flex items-center gap-2">
                     <span id="current-formation-title" class="text-[10px] font-bold text-zinc-400 uppercase">4-3-3 Strategy</span>
-                    <div id="mode-indicator" class="text-[9px] font-bold text-red-500 uppercase">Editing Mode</div>
+                    <div id="mode-indicator" class="text-[9px] font-bold text-red-500 uppercase tracking-wider">Editing</div>
                 </div>
             </div>
-            <div class="formation-selector flex gap-1 overflow-x-auto no-scrollbar max-w-[180px] md:max-w-none">
-                <button onclick="changeFormation('433')" id="btn-433" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">433</button>
-                <button onclick="changeFormation('433A')" id="btn-433A" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">433A</button>
-                <button onclick="changeFormation('433D')" id="btn-433D" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">433D</button>
-                <button onclick="changeFormation('442')" id="btn-442" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">442</button>
-                <button onclick="changeFormation('343')" id="btn-343" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">343</button>
-                <button onclick="changeFormation('352')" id="btn-352" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">352</button>
-                <button onclick="changeFormation('41212')" id="btn-41212" class="formation-btn border border-zinc-700 px-2 py-1 rounded text-[9px] font-bold uppercase shrink-0">41212 FB</button>
+            <div class="formation-selector flex gap-1 overflow-x-auto no-scrollbar shrink-0">
+                <button onclick="changeFormation('433')" id="btn-433" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">433</button>
+                <button onclick="changeFormation('433A')" id="btn-433A" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">433A</button>
+                <button onclick="changeFormation('433D')" id="btn-433D" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">433D</button>
+                <button onclick="changeFormation('442')" id="btn-442" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">442</button>
+                <button onclick="changeFormation('343')" id="btn-343" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">343</button>
+                <button onclick="changeFormation('352')" id="btn-352" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">352</button>
+                <button onclick="changeFormation('41212')" id="btn-41212" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0 italic">41212 FB</button>
             </div>
         </div>
     </header>
@@ -206,191 +213,103 @@
     <main class="max-w-5xl mx-auto p-4 flex flex-col lg:flex-row gap-6 pb-40">
         
         <div class="w-full lg:w-1/2 shrink-0">
-            <div id="capture-area" class="bg-zinc-950 p-2 rounded-xl">
+            <div id="capture-area">
                 <div class="pitch" id="pitch">
                     <div class="penalty-area top-box"></div>
                     <div class="penalty-area bottom-box"></div>
                 </div>
-                <div class="mt-2 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-widest" id="capture-footer">
+                <div class="mt-4 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-widest" id="capture-footer">
                     Soccer Strategy Board
                 </div>
             </div>
 
-            <!-- AI 포지션 추천기 -->
             <div class="recommend-container mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
                 <div class="flex items-center gap-2 mb-4">
-                    <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
+                    <span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
                     <h3 class="text-sm font-bold text-white uppercase tracking-tight">AI 포지션 추천기</h3>
                 </div>
                 <div class="grid grid-cols-3 gap-3 mb-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">속도</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">속도</label>
                         <input type="number" id="rec-속도" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">슛</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">슛</label>
                         <input type="number" id="rec-슛" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">패스</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">패스</label>
                         <input type="number" id="rec-패스" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">드리블</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">드리블</label>
                         <input type="number" id="rec-드리블" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">수비</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">수비</label>
                         <input type="number" id="rec-수비" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block">피지컬</label>
+                        <label class="text-[10px] text-zinc-500 block font-bold">피지컬</label>
                         <input type="number" id="rec-피지컬" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
                     </div>
                 </div>
                 <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-lg text-center">
-                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">추천 포지션</div>
-                    <div id="recommended-pos" class="text-xl font-black text-white italic">CALCULATING...</div>
-                    <div id="recommended-desc" class="text-[10px] text-zinc-400 mt-1">스탯(0~10)을 입력하면 AI가 분석합니다.</div>
+                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">AI 분석 추천</div>
+                    <div id="recommended-pos" class="text-xl font-black text-white italic tracking-tight">-</div>
+                    <div id="recommended-desc" class="text-[11px] text-zinc-400 mt-1 leading-tight">능력치를 입력해주세요.</div>
                 </div>
             </div>
         </div>
 
-        <!-- 우측: 입력 패널 -->
         <div class="w-full lg:w-1/2">
             <div class="edit-container space-y-4">
-                <div class="flex items-baseline gap-2 mb-2">
-                    <span class="self-center w-1 h-4 bg-red-500 rounded-full"></span>
-                    <h2 class="text-sm font-bold">선수 명단 및 능력치</h2>
-                    <span class="text-[10px] text-zinc-500 font-medium">(최대 10점)</span>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1 h-4 bg-red-500 rounded-full"></span>
+                        <h2 class="text-sm font-bold uppercase tracking-tighter">선수 엔트리 관리</h2>
+                    </div>
                 </div>
-                <div id="input-fields" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[80vh] lg:max-h-none overflow-y-auto pr-2 custom-scrollbar">
-                    <!-- 입력 필드 동적 생성 -->
+                <div id="input-fields" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] lg:max-h-none overflow-y-auto pr-2 custom-scrollbar">
                 </div>
             </div>
 
-            <div class="view-container bg-zinc-900 border border-zinc-800 p-8 rounded-2xl text-center space-y-4">
-                <div class="w-12 h-12 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <div class="view-container bg-zinc-900 border border-zinc-800 p-8 rounded-2xl text-center space-y-4 shadow-2xl">
+                <div class="w-14 h-14 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto border border-green-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-                <h3 class="text-xl font-bold">전략이 저장되었습니다</h3>
-                <p id="save-summary" class="text-zinc-400 text-sm">팀의 상세 스펙을 확인하세요.</p>
+                <h3 class="text-xl font-bold tracking-tight">전략 저장 완료</h3>
+                <p id="save-summary" class="text-zinc-400 text-sm">팀의 고유한 전술 배치가 완료되었습니다.</p>
             </div>
         </div>
     </main>
 
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-lg border-t border-zinc-800 z-50">
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800 z-50">
         <div class="max-w-5xl mx-auto flex gap-2">
-            <button onclick="downloadImage()" class="bg-zinc-700 text-white font-bold px-4 md:px-6 py-4 rounded-xl text-[10px] md:text-xs uppercase flex items-center justify-center gap-2 active:scale-95 transition-transform shrink-0">
+            <button onclick="downloadImage()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-4 rounded-xl text-[10px] uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0">
                 이미지 저장
             </button>
-            
-            <button onclick="setMode(true)" class="mode-edit flex-1 bg-white text-black font-black py-4 rounded-xl text-xs md:text-sm uppercase shadow-xl active:scale-95 transition-transform flex items-center justify-center">
-                전략 저장
+            <button onclick="setMode(true)" class="mode-edit flex-1 bg-white text-black font-black py-4 rounded-xl text-xs uppercase shadow-xl hover:bg-zinc-200 active:scale-95 transition-all flex items-center justify-center">
+                전략 확정하기
             </button>
-            <button onclick="sendStrategy()" class="mode-view flex-1 bg-blue-600 text-white font-black py-4 rounded-xl text-xs md:text-sm flex items-center justify-center gap-2 uppercase">
-                전략 복사
+            <button onclick="sendStrategy()" class="mode-view flex-1 bg-blue-600 text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 uppercase tracking-wide">
+                전략 텍스트 복사
             </button>
-
-            <button onclick="setMode(false)" class="mode-view bg-zinc-800 text-white font-bold px-6 md:px-10 py-4 rounded-xl text-[10px] md:text-xs uppercase shrink-0 flex items-center justify-center">
-                수정
+            <button onclick="setMode(false)" class="mode-view bg-zinc-800 text-white font-bold px-6 py-4 rounded-xl text-[10px] uppercase shrink-0 flex items-center justify-center hover:bg-zinc-700 transition-all">
+                재수정
             </button>
         </div>
     </div>
 
     <script>
         const formationData = {
-            '433': [
-                { id: 'p1', label: 'LW', top: 15, left: 20, pDir: 'bottom' },
-                { id: 'p2', label: 'ST', top: 10, left: 50, pDir: 'bottom' },
-                { id: 'p3', label: 'RW', top: 15, left: 80, pDir: 'bottom' },
-                { id: 'p4', label: 'LCM', top: 40, left: 25, pDir: 'top' },
-                { id: 'p5', label: 'CM', top: 45, left: 50, pDir: 'top' },
-                { id: 'p6', label: 'RCM', top: 40, left: 75, pDir: 'top' },
-                { id: 'p7', label: 'LB', top: 70, left: 15, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 75, left: 38, pDir: 'top' },
-                { id: 'p9', label: 'RCB', top: 75, left: 62, pDir: 'top' },
-                { id: 'p10', label: 'RB', top: 70, left: 85, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '433A': [
-                { id: 'p1', label: 'LW', top: 15, left: 20, pDir: 'bottom' },
-                { id: 'p2', label: 'ST', top: 10, left: 50, pDir: 'bottom' },
-                { id: 'p3', label: 'RW', top: 15, left: 80, pDir: 'bottom' },
-                { id: 'p4', label: 'CAM', top: 35, left: 50, pDir: 'bottom' },
-                { id: 'p5', label: 'LCM', top: 50, left: 30, pDir: 'top' },
-                { id: 'p6', label: 'RCM', top: 50, left: 70, pDir: 'top' },
-                { id: 'p7', label: 'LB', top: 70, left: 15, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 78, left: 38, pDir: 'top' },
-                { id: 'p9', label: 'RCB', top: 78, left: 62, pDir: 'top' },
-                { id: 'p10', label: 'RB', top: 70, left: 85, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '433D': [
-                { id: 'p1', label: 'LW', top: 15, left: 20, pDir: 'bottom' },
-                { id: 'p2', label: 'ST', top: 10, left: 50, pDir: 'bottom' },
-                { id: 'p3', label: 'RW', top: 15, left: 80, pDir: 'bottom' },
-                { id: 'p4', label: 'LCM', top: 40, left: 30, pDir: 'top' },
-                { id: 'p5', label: 'CDM', top: 58, left: 50, pDir: 'top' },
-                { id: 'p6', label: 'RCM', top: 40, left: 70, pDir: 'top' },
-                { id: 'p7', label: 'LB', top: 72, left: 15, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 78, left: 38, pDir: 'top' },
-                { id: 'p9', label: 'RCB', top: 78, left: 62, pDir: 'top' },
-                { id: 'p10', label: 'RB', top: 72, left: 85, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '442': [
-                { id: 'p1', label: 'LS', top: 12, left: 35, pDir: 'bottom' },
-                { id: 'p2', label: 'RS', top: 12, left: 65, pDir: 'bottom' },
-                { id: 'p3', label: 'LM', top: 40, left: 15, pDir: 'top' },
-                { id: 'p4', label: 'LCM', top: 45, left: 38, pDir: 'top' },
-                { id: 'p5', label: 'RCM', top: 45, left: 62, pDir: 'top' },
-                { id: 'p6', label: 'RM', top: 40, left: 85, pDir: 'top' },
-                { id: 'p7', label: 'LB', top: 70, left: 15, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 75, left: 38, pDir: 'top' },
-                { id: 'p9', label: 'RCB', top: 75, left: 62, pDir: 'top' },
-                { id: 'p10', label: 'RB', top: 70, left: 85, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '343': [
-                { id: 'p1', label: 'LW', top: 15, left: 20, pDir: 'bottom' },
-                { id: 'p2', label: 'ST', top: 10, left: 50, pDir: 'bottom' },
-                { id: 'p3', label: 'RW', top: 15, left: 80, pDir: 'bottom' },
-                { id: 'p4', label: 'LM', top: 45, left: 15, pDir: 'top' },
-                { id: 'p5', label: 'LCM', top: 50, left: 38, pDir: 'top' },
-                { id: 'p6', label: 'RCM', top: 50, left: 62, pDir: 'top' },
-                { id: 'p7', label: 'RM', top: 45, left: 85, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 78, left: 25, pDir: 'top' },
-                { id: 'p9', label: 'CB', top: 82, left: 50, pDir: 'top' },
-                { id: 'p10', label: 'RCB', top: 78, left: 75, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '352': [
-                { id: 'p1', label: 'LS', top: 12, left: 35, pDir: 'bottom' },
-                { id: 'p2', label: 'RS', top: 12, left: 65, pDir: 'bottom' },
-                { id: 'p3', label: 'CAM', top: 35, left: 50, pDir: 'bottom' },
-                { id: 'p4', label: 'LM', top: 50, left: 15, pDir: 'top' },
-                { id: 'p5', label: 'LCM', top: 55, left: 35, pDir: 'top' },
-                { id: 'p6', label: 'RCM', top: 55, left: 65, pDir: 'top' },
-                { id: 'p7', label: 'RM', top: 50, left: 85, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 78, left: 25, pDir: 'top' },
-                { id: 'p9', label: 'CB', top: 82, left: 50, pDir: 'top' },
-                { id: 'p10', label: 'RCB', top: 78, left: 75, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ],
-            '41212': [
-                { id: 'p1', label: 'LS', top: 12, left: 38, pDir: 'bottom' },
-                { id: 'p2', label: 'RS', top: 12, left: 62, pDir: 'bottom' },
-                { id: 'p3', label: 'CAM', top: 32, left: 50, pDir: 'bottom' },
-                { id: 'p4', label: 'LM', top: 48, left: 20, pDir: 'top' },
-                { id: 'p5', label: 'RM', top: 48, left: 80, pDir: 'top' },
-                { id: 'p6', label: 'CDM', top: 62, left: 50, pDir: 'top' },
-                { id: 'p7', label: 'LFB', top: 70, left: 12, pDir: 'top' },
-                { id: 'p8', label: 'LCB', top: 78, left: 38, pDir: 'top' },
-                { id: 'p9', label: 'RCB', top: 78, left: 62, pDir: 'top' },
-                { id: 'p10', label: 'RFB', top: 70, left: 88, pDir: 'top' },
-                { id: 'p11', label: 'GK', top: 92, left: 50, pDir: 'top' }
-            ]
+            '433': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:25,pDir:'top'},{id:'p5',label:'CM',top:45,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:75,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '433A': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'LCM',top:50,left:30,pDir:'top'},{id:'p6',label:'RCM',top:50,left:70,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '433D': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:30,pDir:'top'},{id:'p5',label:'CDM',top:58,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:70,pDir:'top'},{id:'p7',label:'LB',top:72,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:72,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '442': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'LM',top:40,left:15,pDir:'top'},{id:'p4',label:'LCM',top:45,left:38,pDir:'top'},{id:'p5',label:'RCM',top:45,left:62,pDir:'top'},{id:'p6',label:'RM',top:40,left:85,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LM',top:45,left:15,pDir:'top'},{id:'p5',label:'LCM',top:50,left:38,pDir:'top'},{id:'p6',label:'RCM',top:50,left:62,pDir:'top'},{id:'p7',label:'RM',top:45,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '352': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:50,left:15,pDir:'top'},{id:'p5',label:'LCM',top:55,left:35,pDir:'top'},{id:'p6',label:'RCM',top:55,left:65,pDir:'top'},{id:'p7',label:'RM',top:50,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LFB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RFB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
         };
 
         const statsList = ['속도', '슛', '패스', '드리블', '수비', '피지컬'];
@@ -409,7 +328,7 @@
                     <div class="spec-popup" id="popup-${id}">
                         ${statsList.map(s => `<div class="spec-row"><span>${s}</span><span class="spec-val" id="val-${id}-${s}">0</span></div>`).join('')}
                     </div>
-                    <div class="player-visual" id="visual-${id}">-</div>
+                    <div class="player-visual" id="visual-${id}"></div>
                     <div class="player-label" id="label-${id}">빈 자리</div>
                 `;
                 pitch.appendChild(node);
@@ -419,8 +338,8 @@
                 card.className = 'bg-zinc-900 border border-zinc-800 p-4 rounded-xl';
                 card.innerHTML = `
                     <div class="flex items-center gap-2 mb-3">
-                        <span class="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded min-w-[30px] text-center" id="form-pos-label-${id}">-</span>
-                        <input type="text" data-pos="${id}" data-type="name" placeholder="선수명" class="bg-transparent border-b border-zinc-800 outline-none focus:border-red-500 text-xs w-full py-1 text-white">
+                        <span class="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded min-w-[32px] text-center" id="form-pos-label-${id}">-</span>
+                        <input type="text" data-pos="${id}" data-type="name" placeholder="선수 성명" class="bg-transparent border-b border-zinc-800 outline-none focus:border-red-500 text-xs w-full py-1 text-white">
                     </div>
                     <div class="grid grid-cols-3 gap-1.5">
                         ${statsList.map(s => `
@@ -436,7 +355,7 @@
 
             document.querySelectorAll('input').forEach(input => {
                 input.addEventListener('input', (e) => {
-                    if (e.target.type === 'number') {
+                    if (e.target.type === 'number' && !e.target.id.startsWith('rec-')) {
                         let val = parseInt(e.target.value);
                         if (val > 10) e.target.value = 10;
                         if (val < 0 || isNaN(val)) e.target.value = 0;
@@ -451,32 +370,32 @@
 
         function recommendPosition() {
             const stats = {};
-            statsList.forEach(s => {
-                stats[s] = parseInt(document.getElementById(`rec-${s}`).value) || 0;
+            statsList.forEach(s => { 
+                const el = document.getElementById(`rec-${s}`);
+                stats[s] = el ? (parseInt(el.value) || 0) : 0; 
             });
 
             const logic = [
-                { pos: 'ST (스트라이커)', score: (stats['슛'] * 0.45) + (stats['속도'] * 0.2) + (stats['피지컬'] * 0.2) + (stats['드리블'] * 0.15), desc: '최전방 해결사로 가장 적합합니다.' },
-                { pos: 'Wing (윙어)', score: (stats['속도'] * 0.45) + (stats['드리블'] * 0.4) + (stats['패스'] * 0.15), desc: '측면을 흔드는 크랙 역할에 완벽합니다.' },
-                { pos: 'CAM (공격형 미드필더)', score: (stats['패스'] * 0.4) + (stats['드리블'] * 0.3) + (stats['슛'] * 0.3), desc: '창의적인 플레이메이커로 활약하세요.' },
-                { pos: 'CM (중앙 미드필더)', score: (stats['패스'] * 0.35) + (stats['수비'] * 0.2) + (stats['피지컬'] * 0.2) + (stats['속도'] * 0.1) + (stats['드리블'] * 0.15), desc: '공수의 핵심 엔진 역할입니다.' },
-                { pos: 'CDM (수비형 미드필더)', score: (stats['수비'] * 0.35) + (stats['피지컬'] * 0.4) + (stats['패스'] * 0.25), desc: '포백 앞의 수비 사령관입니다.' },
-                { pos: 'CB (센터백)', score: (stats['수비'] * 0.55) + (stats['피지컬'] * 0.4) + (stats['속도'] * 0.05), desc: '단단한 최후방 방어선입니다.' },
-                { pos: 'FB (풀백/공격형 수비)', score: (stats['속도'] * 0.4) + (stats['수비'] * 0.3) + (stats['피지컬'] * 0.1) + (stats['패스'] * 0.2), desc: '폭발적인 오버래핑 능력을 가졌습니다.' }
+                { pos: 'ST (스트라이커)', score: (stats['슛'] * 0.5) + (stats['속도'] * 0.2) + (stats['피지컬'] * 0.3), desc: '강력한 결정력과 피지컬로 골문을 위협합니다.' },
+                { pos: 'LW/RW (윙어)', score: (stats['속도'] * 0.5) + (stats['드리블'] * 0.4) + (stats['패스'] * 0.1), desc: '빠른 속도로 측면을 무력화시킵니다.' },
+                { pos: 'CAM (공미)', score: (stats['패스'] * 0.4) + (stats['드리블'] * 0.3) + (stats['슛'] * 0.3), desc: '창의적인 패스로 공격을 지휘합니다.' },
+                { pos: 'CM (중미)', score: (stats['패스'] * 0.3) + (stats['수비'] * 0.2) + (stats['피지컬'] * 0.2) + (stats['드리블'] * 0.3), desc: '중원의 살림꾼으로서 공수 연결고리입니다.' },
+                { pos: 'CDM (수미)', score: (stats['수비'] * 0.4) + (stats['피지컬'] * 0.4) + (stats['패스'] * 0.2), desc: '포백을 보호하고 수비 중심을 잡습니다.' },
+                { pos: 'CB (센터백)', score: (stats['수비'] * 0.6) + (stats['피지컬'] * 0.4), desc: '철벽 수비로 골키퍼를 보호합니다.' },
+                { pos: 'FB (풀백/공수)', score: (stats['속도'] * 0.4) + (stats['수비'] * 0.3) + (stats['패스'] * 0.3), desc: '활동량과 속도로 공수 양면을 책임집니다.' }
             ];
 
             const best = logic.reduce((prev, current) => (prev.score > current.score) ? prev : current);
-            
-            document.getElementById('recommended-pos').textContent = best.pos;
-            document.getElementById('recommended-desc').textContent = best.desc;
+            const posDisplay = document.getElementById('recommended-pos');
+            const descDisplay = document.getElementById('recommended-desc');
+            if (posDisplay) posDisplay.textContent = best.pos;
+            if (descDisplay) descDisplay.textContent = best.desc;
         }
 
         function changeFormation(fKey) {
             currentFormation = fKey;
             document.querySelectorAll('.formation-btn').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${fKey}`));
-            
-            let displayTitle = fKey;
-            if(fKey === '41212') displayTitle = '4-1-2-1-2 FB';
+            let displayTitle = fKey === '41212' ? '4-1-2-1-2 FB' : fKey;
             
             document.getElementById('current-formation-title').textContent = displayTitle + ' Strategy';
             document.getElementById('capture-footer').textContent = displayTitle + ' - Soccer Strategy Board';
@@ -486,7 +405,6 @@
                 node.style.top = `${pos.top}%`;
                 node.style.left = `${pos.left}%`;
                 document.getElementById(`form-pos-label-${pos.id}`).textContent = pos.label;
-                
                 const popup = document.getElementById(`popup-${pos.id}`);
                 popup.className = `spec-popup ${pos.pDir === 'bottom' ? 'spec-popup-bottom' : 'spec-popup-top'}`;
             });
@@ -497,25 +415,22 @@
             Object.keys(playersMap).forEach(id => {
                 const nameInput = document.querySelector(`input[data-type="name"][data-pos="${id}"]`);
                 const name = nameInput ? nameInput.value.trim() : "";
-                const node = playersMap[id];
                 const visual = document.getElementById(`visual-${id}`);
                 const label = document.getElementById(`label-${id}`);
-
+                const posInfo = formationData[currentFormation].find(p => p.id === id);
+                
+                visual.textContent = posInfo ? posInfo.label : '-';
                 if (name) {
-                    node.classList.remove('is-empty');
+                    playersMap[id].classList.remove('is-empty');
                     label.textContent = name;
-                    visual.textContent = name.charAt(0);
                 } else {
-                    node.classList.add('is-empty');
+                    playersMap[id].classList.add('is-empty');
                     label.textContent = '빈 자리';
-                    const posInfo = formationData[currentFormation].find(p => p.id === id);
-                    visual.textContent = posInfo ? posInfo.label : '-';
                 }
 
                 statsList.forEach(s => {
-                    const statInput = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
-                    const val = statInput ? statInput.value : '0';
-                    document.getElementById(`val-${id}-${s}`).textContent = val || '0';
+                    const valInput = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
+                    document.getElementById(`val-${id}-${s}`).textContent = valInput ? valInput.value : '0';
                 });
             });
         }
@@ -523,12 +438,11 @@
         function setMode(isReadonly) {
             const teamName = document.getElementById('team-name-input').value.trim() || "My Team";
             document.getElementById('team-name-display').textContent = teamName;
-            document.getElementById('save-summary').textContent = `[${teamName}] 팀의 전략이 저장되었습니다.`;
-            
+            document.getElementById('save-summary').textContent = `[${teamName}]의 전술이 최종 확정되었습니다.`;
             document.body.classList.toggle('readonly-mode', isReadonly);
-            document.getElementById('mode-indicator').textContent = isReadonly ? 'View Mode' : 'Editing Mode';
-            document.getElementById('mode-indicator').className = isReadonly ? 'text-[9px] font-bold text-blue-500 uppercase' : 'text-[9px] font-bold text-red-500 uppercase';
-            
+            const indicator = document.getElementById('mode-indicator');
+            indicator.textContent = isReadonly ? 'Saved' : 'Editing';
+            indicator.className = isReadonly ? 'text-[9px] font-bold text-blue-500 uppercase tracking-wider' : 'text-[9px] font-bold text-red-500 uppercase tracking-wider';
             if (isReadonly) window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -540,45 +454,53 @@
             toast.textContent = "이미지 생성 중...";
             toast.style.display = 'block';
             toast.style.background = '#3b82f6';
+
             try {
-                const canvas = await html2canvas(captureArea, { backgroundColor: '#09090b', scale: 2, logging: false, useCORS: true });
+                const canvas = await html2canvas(captureArea, { 
+                    backgroundColor: '#09090b', 
+                    scale: 3, 
+                    useCORS: true,
+                    onclone: (clonedDoc) => {
+                        // 캡처 시에도 flex 정렬을 강제하기 위한 스타일 재주입
+                        const labels = clonedDoc.querySelectorAll('.player-label');
+                        labels.forEach(l => {
+                            l.style.display = 'flex';
+                            l.style.alignItems = 'center';
+                            l.style.justifyContent = 'center';
+                            l.style.lineHeight = 'normal';
+                            l.style.padding = '0';
+                        });
+                    }
+                });
                 const link = document.createElement('a');
-                link.download = `${teamName}-${currentFormation}.png`;
+                link.download = `Strategy-${teamName}-${currentFormation}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                toast.textContent = "이미지가 저장되었습니다!";
+                toast.textContent = "저장 완료!";
                 toast.style.background = '#22c55e';
             } catch (err) {
-                toast.textContent = "저장 실패!";
+                toast.textContent = "저장 실패";
                 toast.style.background = '#ef4444';
             } finally {
-                setTimeout(() => toast.style.display = 'none', 2000);
+                setTimeout(() => { toast.style.display = 'none'; }, 2000);
             }
         }
 
         function sendStrategy() {
-            const teamName = document.getElementById('team-name-input').value.trim() || "무명 팀";
-            let message = `⚽ [팀: ${teamName} | 포메이션: ${currentFormation}]\n\n`;
-            
+            const teamName = document.getElementById('team-name-input').value.trim() || "My Team";
+            let msg = `⚽ [팀: ${teamName} | ${currentFormation}]\n\n`;
             formationData[currentFormation].forEach(pos => {
                 const nameInput = document.querySelector(`input[data-type="name"][data-pos="${pos.id}"]`);
-                const name = (nameInput ? nameInput.value.trim() : "") || "?";
-                message += `[${pos.label}] ${name}\n`;
-                const stats = statsList.map(s => `${s}:${document.getElementById(`val-${pos.id}-${s}`).textContent}`).join(' | ');
-                message += `└ ${stats}\n`;
+                msg += `${pos.label}: ${nameInput.value.trim() || "미배정"}\n`;
             });
-            
-            const el = document.createElement('textarea');
-            el.value = message;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            
+            const temp = document.createElement('textarea');
+            temp.value = msg; document.body.appendChild(temp);
+            temp.select(); document.execCommand('copy');
+            document.body.removeChild(temp);
             const toast = document.getElementById('toast');
-            toast.textContent = "전략 정보가 클립보드에 복사되었습니다!";
+            toast.textContent = "전략 복사 완료!";
             toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2000);
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
         }
 
         window.onload = init;
