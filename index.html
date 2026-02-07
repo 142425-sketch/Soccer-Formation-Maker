@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전략 보드 프로 - 텍스트 정렬 최종 수정</title>
+    <title>전략 보드 프로 - 텍스트 중앙 정렬 업데이트</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -59,6 +59,39 @@
         .top-box { top: 0; border-top: none; }
         .bottom-box { bottom: 0; border-bottom: none; }
 
+        /* [핵심 수정] 하단 검은 박스 내 텍스트 중앙 정렬 스타일 */
+        #capture-footer {
+            margin-top: 12px;
+            background: #18181b; /* 검은색 박스 배경 */
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex; /* Flex박스 사용 */
+            flex-direction: column;
+            align-items: center; /* 가로 중앙 */
+            justify-content: center; /* 세로 중앙 */
+            min-height: 60px; /* 박스 높이 확보 */
+            border: 1px solid #27272a;
+        }
+
+        #footer-team-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.025em;
+            font-style: italic;
+            line-height: 1.2;
+        }
+
+        #footer-sub-text {
+            color: #71717a;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+
         .player-node {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -87,7 +120,6 @@
             z-index: 2;
         }
 
-        /* 이름표: Flexbox를 사용하여 수직/수평 중앙 정렬 강제 */
         .player-label {
             margin-top: 5px;
             background: rgba(0, 0, 0, 0.9);
@@ -99,14 +131,11 @@
             font-weight: 700;
             z-index: 2;
             padding: 0 4px;
-            
-            /* 정중앙 정렬 핵심 */
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            
-            line-height: normal; /* line-height 초기화 */
+            line-height: normal;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -180,8 +209,6 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -191,7 +218,7 @@
     <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
         <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
             <div class="flex-1">
-                <input type="text" id="team-name-input" placeholder="팀 이름을 입력하세요" value="My Team" class="bg-transparent border-b border-zinc-800 outline-none focus:border-white text-lg font-black italic tracking-tighter text-white uppercase w-full max-w-[200px] mb-0.5">
+                <input type="text" id="team-name-input" placeholder="팀 이름을 입력하세요" value="My Team" oninput="updateFooterName()" class="bg-transparent border-b border-zinc-800 outline-none focus:border-white text-lg font-black italic tracking-tighter text-white uppercase w-full max-w-[200px] mb-0.5">
                 <h2 id="team-name-display" class="text-lg font-black italic tracking-tighter text-white uppercase mb-0.5">My Team</h2>
                 <div class="flex items-center gap-2">
                     <span id="current-formation-title" class="text-[10px] font-bold text-zinc-400 uppercase">4-3-3 Strategy</span>
@@ -205,7 +232,7 @@
                 <button onclick="changeFormation('442')" id="btn-442" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">442</button>
                 <button onclick="changeFormation('343')" id="btn-343" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">343</button>
                 <button onclick="changeFormation('352')" id="btn-352" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0">352</button>
-                <button onclick="changeFormation('41212')" id="btn-41212" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0 italic">41212 FB</button>
+                <button onclick="changeFormation('41212')" id="btn-41212" class="formation-btn border border-zinc-700 px-2.5 py-1.5 rounded text-[10px] font-bold uppercase shrink-0 italic">41212 LAB/RAB</button>
             </div>
         </div>
     </header>
@@ -218,8 +245,10 @@
                     <div class="penalty-area top-box"></div>
                     <div class="penalty-area bottom-box"></div>
                 </div>
-                <div class="mt-4 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-widest" id="capture-footer">
-                    Soccer Strategy Board
+                <!-- 하단 정보 박스 (이미지 저장 시 포함) -->
+                <div id="capture-footer">
+                    <div id="footer-team-name">MY TEAM</div>
+                    <div id="footer-sub-text">4-3-3 STRATEGY - SOCCER BOARD</div>
                 </div>
             </div>
 
@@ -229,30 +258,12 @@
                     <h3 class="text-sm font-bold text-white uppercase tracking-tight">AI 포지션 추천기</h3>
                 </div>
                 <div class="grid grid-cols-3 gap-3 mb-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">속도</label>
-                        <input type="number" id="rec-속도" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">슛</label>
-                        <input type="number" id="rec-슛" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">패스</label>
-                        <input type="number" id="rec-패스" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">드리블</label>
-                        <input type="number" id="rec-드리블" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">수비</label>
-                        <input type="number" id="rec-수비" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] text-zinc-500 block font-bold">피지컬</label>
-                        <input type="number" id="rec-피지컬" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
-                    </div>
+                    ${['속도', '슛', '패스', '드리블', '수비', '피지컬'].map(s => `
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-zinc-500 block font-bold">${s}</label>
+                            <input type="number" id="rec-${s}" value="5" min="0" max="10" onfocus="this.select()" oninput="recommendPosition()" class="w-full bg-zinc-950 border border-zinc-800 rounded p-2 text-xs text-center font-bold text-yellow-500">
+                        </div>
+                    `).join('')}
                 </div>
                 <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-lg text-center">
                     <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">AI 분석 추천</div>
@@ -309,7 +320,7 @@
             '442': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'LM',top:40,left:15,pDir:'top'},{id:'p4',label:'LCM',top:45,left:38,pDir:'top'},{id:'p5',label:'RCM',top:45,left:62,pDir:'top'},{id:'p6',label:'RM',top:40,left:85,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LM',top:45,left:15,pDir:'top'},{id:'p5',label:'LCM',top:50,left:38,pDir:'top'},{id:'p6',label:'RCM',top:50,left:62,pDir:'top'},{id:'p7',label:'RM',top:45,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '352': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:50,left:15,pDir:'top'},{id:'p5',label:'LCM',top:55,left:35,pDir:'top'},{id:'p6',label:'RCM',top:55,left:65,pDir:'top'},{id:'p7',label:'RM',top:50,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LFB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RFB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
+            '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LAB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RAB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
         };
 
         const statsList = ['속도', '슛', '패스', '드리블', '수비', '피지컬'];
@@ -366,6 +377,14 @@
 
             changeFormation('433');
             recommendPosition();
+            updateFooterName();
+        }
+
+        // 입력한 팀 이름을 하단 박스에 실시간 동기화
+        function updateFooterName() {
+            const input = document.getElementById('team-name-input');
+            const footerName = document.getElementById('footer-team-name');
+            footerName.textContent = input.value.trim().toUpperCase() || "MY TEAM";
         }
 
         function recommendPosition() {
@@ -382,23 +401,21 @@
                 { pos: 'CM (중미)', score: (stats['패스'] * 0.3) + (stats['수비'] * 0.2) + (stats['피지컬'] * 0.2) + (stats['드리블'] * 0.3), desc: '중원의 살림꾼으로서 공수 연결고리입니다.' },
                 { pos: 'CDM (수미)', score: (stats['수비'] * 0.4) + (stats['피지컬'] * 0.4) + (stats['패스'] * 0.2), desc: '포백을 보호하고 수비 중심을 잡습니다.' },
                 { pos: 'CB (센터백)', score: (stats['수비'] * 0.6) + (stats['피지컬'] * 0.4), desc: '철벽 수비로 골키퍼를 보호합니다.' },
-                { pos: 'FB (풀백/공수)', score: (stats['속도'] * 0.4) + (stats['수비'] * 0.3) + (stats['패스'] * 0.3), desc: '활동량과 속도로 공수 양면을 책임집니다.' }
+                { pos: 'AB (공격형 풀백)', score: (stats['속도'] * 0.4) + (stats['수비'] * 0.3) + (stats['패스'] * 0.3), desc: '활동량과 속도로 공수 양면을 책임집니다.' }
             ];
 
             const best = logic.reduce((prev, current) => (prev.score > current.score) ? prev : current);
-            const posDisplay = document.getElementById('recommended-pos');
-            const descDisplay = document.getElementById('recommended-desc');
-            if (posDisplay) posDisplay.textContent = best.pos;
-            if (descDisplay) descDisplay.textContent = best.desc;
+            document.getElementById('recommended-pos').textContent = best.pos;
+            document.getElementById('recommended-desc').textContent = best.desc;
         }
 
         function changeFormation(fKey) {
             currentFormation = fKey;
             document.querySelectorAll('.formation-btn').forEach(btn => btn.classList.toggle('active', btn.id === `btn-${fKey}`));
-            let displayTitle = fKey === '41212' ? '4-1-2-1-2 FB' : fKey;
+            let displayTitle = fKey === '41212' ? '4-1-2-1-2 LAB/RAB' : fKey;
             
             document.getElementById('current-formation-title').textContent = displayTitle + ' Strategy';
-            document.getElementById('capture-footer').textContent = displayTitle + ' - Soccer Strategy Board';
+            document.getElementById('footer-sub-text').textContent = displayTitle + ' STRATEGY - SOCCER BOARD';
 
             formationData[fKey].forEach(pos => {
                 const node = playersMap[pos.id];
@@ -459,18 +476,7 @@
                 const canvas = await html2canvas(captureArea, { 
                     backgroundColor: '#09090b', 
                     scale: 3, 
-                    useCORS: true,
-                    onclone: (clonedDoc) => {
-                        // 캡처 시에도 flex 정렬을 강제하기 위한 스타일 재주입
-                        const labels = clonedDoc.querySelectorAll('.player-label');
-                        labels.forEach(l => {
-                            l.style.display = 'flex';
-                            l.style.alignItems = 'center';
-                            l.style.justifyContent = 'center';
-                            l.style.lineHeight = 'normal';
-                            l.style.padding = '0';
-                        });
-                    }
+                    useCORS: true
                 });
                 const link = document.createElement('a');
                 link.download = `Strategy-${teamName}-${currentFormation}.png`;
