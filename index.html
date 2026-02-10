@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전략 보드 프로 - 3-4-3 배치 최적화</title>
+    <title>전략 보드 프로 - GK 전용 스탯 적용</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -20,6 +20,16 @@
             padding: 0;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 숫자 화살표 제거 */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
         }
 
         #capture-area {
@@ -119,16 +129,35 @@
             z-index: 2;
         }
 
-        .player-label {
+        .player-label-wrap {
             margin-top: 5px;
+            display: flex;
+            align-items: stretch;
+            gap: 1px;
+            z-index: 2;
+        }
+
+        .player-number {
+            background: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px 0 0 3px;
+            min-width: 18px;
+        }
+
+        .player-label {
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            width: 70px;
+            width: 60px;
             height: 22px;
-            border-radius: 4px;
+            border-radius: 0 3px 3px 0;
             font-size: 10px;
             font-weight: 700;
-            z-index: 2;
             padding: 0 4px;
             display: flex;
             align-items: center;
@@ -143,7 +172,8 @@
 
         @media (min-width: 768px) { 
             .player-visual { width: 44px; height: 44px; font-size: 12px; }
-            .player-label { font-size: 11px; height: 26px; width: 80px; }
+            .player-label { font-size: 11px; height: 26px; width: 70px; }
+            .player-number { font-size: 10px; min-width: 22px; }
         }
 
         .is-empty .player-visual {
@@ -151,6 +181,8 @@
             border: 2px dashed rgba(255,255,255,0.4);
             color: rgba(255,255,255,0.4);
         }
+        .is-empty .player-number { display: none; }
+        .is-empty .player-label { border-radius: 4px; width: 70px; }
 
         .spec-popup {
             position: absolute;
@@ -250,7 +282,6 @@
                 </div>
             </div>
 
-            <!-- AI 추천기 섹션 -->
             <div class="recommend-container mt-6 bg-zinc-900 border border-zinc-800 rounded-xl p-5">
                 <div class="flex items-center gap-2 mb-4">
                     <span class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
@@ -335,12 +366,14 @@
             '433A': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'LCM',top:50,left:30,pDir:'top'},{id:'p6',label:'RCM',top:50,left:70,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '433D': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:30,pDir:'top'},{id:'p5',label:'CDM',top:58,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:70,pDir:'top'},{id:'p7',label:'LB',top:72,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:72,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '442': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'LM',top:40,left:15,pDir:'top'},{id:'p4',label:'LCM',top:45,left:38,pDir:'top'},{id:'p5',label:'RCM',top:45,left:62,pDir:'top'},{id:'p6',label:'RM',top:40,left:85,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'CM',top:52,left:28,pDir:'top'},{id:'p6',label:'CM',top:52,left:72,pDir:'top'},{id:'p7',label:'CDM',top:65,left:50,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:78,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92.5,left:50,pDir:'top'}],
+            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'CM',top:52,left:28,pDir:'top'},{id:'p6',label:'CM',top:52,left:72,pDir:'top'},{id:'p7',label:'CDM',top:65,left:50,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:78,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:91.5,left:50,pDir:'top'}],
             '352': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:50,left:15,pDir:'top'},{id:'p5',label:'LCM',top:55,left:35,pDir:'top'},{id:'p6',label:'RCM',top:55,left:65,pDir:'top'},{id:'p7',label:'RM',top:50,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LWB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RWB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
         };
 
-        const statsList = ['속도', '슛', '패스', '드리블', '수비', '피지컬'];
+        const commonStats = ['속도', '슛', '패스', '드리블', '수비', '피지컬'];
+        const gkStats = ['다이빙', '캐칭', '반사신경', 'PK', '킥', '위치선정'];
+        
         const pitch = document.getElementById('pitch');
         const inputFields = document.getElementById('input-fields');
         const playersMap = {};
@@ -354,43 +387,32 @@
                 node.id = `node-${id}`;
                 node.innerHTML = `
                     <div class="spec-popup" id="popup-${id}">
-                        ${statsList.map(s => `<div class="spec-row"><span>${s}</span><span class="spec-val" id="val-${id}-${s}">0</span></div>`).join('')}
+                        <div id="popup-content-${id}"></div>
                     </div>
                     <div class="player-visual" id="visual-${id}"></div>
-                    <div class="player-label" id="label-${id}">빈 자리</div>
+                    <div class="player-label-wrap">
+                        <div class="player-number" id="number-${id}">-</div>
+                        <div class="player-label" id="label-${id}">빈 자리</div>
+                    </div>
                 `;
                 pitch.appendChild(node);
                 playersMap[id] = node;
 
                 const card = document.createElement('div');
-                card.className = 'bg-zinc-900 border border-zinc-800 p-4 rounded-xl';
+                card.className = 'bg-zinc-900 border border-zinc-800 p-4 rounded-xl transition-all duration-300';
+                card.id = `card-${id}`;
                 card.innerHTML = `
                     <div class="flex items-center gap-2 mb-3">
                         <span class="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded min-w-[32px] text-center" id="form-pos-label-${id}">-</span>
+                        <input type="number" id="input-no-${id}" placeholder="No." class="bg-zinc-950 border border-zinc-800 rounded p-1 text-[10px] w-12 text-center font-bold text-red-500 outline-none focus:border-red-500" inputmode="numeric">
                         <input type="text" id="input-name-${id}" data-pos="${id}" data-type="name" placeholder="선수 성명" class="bg-transparent border-b border-zinc-800 outline-none focus:border-red-500 text-xs w-full py-1 text-white">
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5">
-                        ${statsList.map(s => `
-                            <div class="flex flex-col items-center bg-zinc-950 p-1 rounded border border-zinc-800">
-                                <label class="text-[8px] text-zinc-500">${s}</label>
-                                <input type="number" data-pos="${id}" data-stat="${s}" value="0" min="0" max="10" onfocus="this.select()" class="bg-transparent w-full text-center text-[10px] font-bold outline-none text-white">
-                            </div>
-                        `).join('')}
+                    <div id="stat-grid-${id}" class="grid grid-cols-3 gap-1.5">
+                        <!-- 스탯 필드는 changeFormation 시 동적으로 생성됩니다 -->
                     </div>
                 `;
                 inputFields.appendChild(card);
             }
-
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    if (e.target.type === 'number' && !e.target.id.startsWith('rec-')) {
-                        let val = parseInt(e.target.value);
-                        if (val > 10) e.target.value = 10;
-                        if (val < 0 || isNaN(val)) e.target.value = 0;
-                    }
-                    sync();
-                });
-            });
 
             changeFormation('433');
             recommendPosition();
@@ -405,7 +427,7 @@
 
         function recommendPosition() {
             const stats = {};
-            statsList.forEach(s => { 
+            commonStats.forEach(s => { 
                 const el = document.getElementById(`rec-${s}`);
                 let val = el ? parseInt(el.value) : 0;
                 if (val > 10) val = 10;
@@ -424,7 +446,6 @@
             ];
 
             const best = logic.reduce((prev, current) => (prev.score >= current.score) ? prev : current);
-            
             const posEl = document.getElementById('recommended-pos');
             const descEl = document.getElementById('recommended-desc');
             
@@ -450,32 +471,71 @@
                 node.style.top = `${pos.top}%`;
                 node.style.left = `${pos.left}%`;
                 document.getElementById(`form-pos-label-${pos.id}`).textContent = pos.label;
+                
                 const popup = document.getElementById(`popup-${pos.id}`);
                 popup.className = `spec-popup ${pos.pDir === 'bottom' ? 'spec-popup-bottom' : 'spec-popup-top'}`;
+
+                // 스탯 필드 갱신
+                updateStatFields(pos.id, pos.label);
             });
             sync();
+        }
+
+        function updateStatFields(id, posLabel) {
+            const grid = document.getElementById(`stat-grid-${id}`);
+            const popupContent = document.getElementById(`popup-content-${id}`);
+            const currentStats = posLabel === 'GK' ? gkStats : commonStats;
+            
+            // 입력 폼 생성
+            grid.innerHTML = currentStats.map(s => `
+                <div class="flex flex-col items-center bg-zinc-950 p-1 rounded border border-zinc-800">
+                    <label class="text-[8px] text-zinc-500">${s}</label>
+                    <input type="number" data-pos="${id}" data-stat="${s}" value="0" min="0" max="10" onfocus="this.select()" oninput="limitValue(this); sync();" class="bg-transparent w-full text-center text-[10px] font-bold outline-none text-white" inputmode="numeric">
+                </div>
+            `).join('');
+
+            // 팝업(호버 시) 내용 틀 생성
+            popupContent.innerHTML = currentStats.map(s => `
+                <div class="spec-row"><span>${s}</span><span class="spec-val" id="val-${id}-${s}">0</span></div>
+            `).join('');
+        }
+
+        function limitValue(el) {
+            let val = parseInt(el.value);
+            if (val > 10) el.value = 10;
+            if (val < 0 || isNaN(val)) el.value = 0;
         }
 
         function sync() {
             Object.keys(playersMap).forEach(id => {
                 const nameInput = document.getElementById(`input-name-${id}`);
+                const numInput = document.getElementById(`input-no-${id}`);
                 const name = nameInput ? nameInput.value.trim() : "";
-                const visual = document.getElementById(`visual-${id}`);
+                const number = numInput ? numInput.value.trim() : "";
+                
                 const label = document.getElementById(`label-${id}`);
+                const numBox = document.getElementById(`number-${id}`);
+                const visual = document.getElementById(`visual-${id}`);
                 const posInfo = formationData[currentFormation].find(p => p.id === id);
                 
                 visual.textContent = posInfo ? posInfo.label : '-';
+                
                 if (name) {
                     playersMap[id].classList.remove('is-empty');
                     label.textContent = name;
+                    numBox.textContent = number || "??";
                 } else {
                     playersMap[id].classList.add('is-empty');
                     label.textContent = '빈 자리';
+                    numBox.textContent = "-";
                 }
 
-                statsList.forEach(s => {
+                // 현재 표시된 스탯 값들 팝업에 동기화
+                const activeStats = (posInfo && posInfo.label === 'GK') ? gkStats : commonStats;
+                activeStats.forEach(s => {
                     const valInput = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
-                    document.getElementById(`val-${id}-${s}`).textContent = valInput ? valInput.value : '0';
+                    const valDisplay = document.getElementById(`val-${id}-${s}`);
+                    if (valDisplay) valDisplay.textContent = valInput ? valInput.value : '0';
                 });
             });
         }
@@ -525,7 +585,10 @@
             let msg = `⚽ [팀: ${teamName} | ${currentFormation}]\n\n`;
             formationData[currentFormation].forEach(pos => {
                 const nameInput = document.getElementById(`input-name-${pos.id}`);
-                msg += `${pos.label}: ${nameInput.value.trim() || "미배정"}\n`;
+                const numInput = document.getElementById(`input-no-${pos.id}`);
+                const name = nameInput.value.trim() || "미배정";
+                const no = numInput.value.trim() ? `(No.${numInput.value.trim()})` : "";
+                msg += `${pos.label}: ${name} ${no}\n`;
             });
             const temp = document.createElement('textarea');
             temp.value = msg; document.body.appendChild(temp);
