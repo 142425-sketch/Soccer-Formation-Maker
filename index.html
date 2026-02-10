@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전략 보드 프로 - AI 추천기 수정</title>
+    <title>전략 보드 프로 - 3-4-3 배치 최적화</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -335,7 +335,7 @@
             '433A': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'LCM',top:50,left:30,pDir:'top'},{id:'p6',label:'RCM',top:50,left:70,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '433D': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:30,pDir:'top'},{id:'p5',label:'CDM',top:58,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:70,pDir:'top'},{id:'p7',label:'LB',top:72,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:72,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '442': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'LM',top:40,left:15,pDir:'top'},{id:'p4',label:'LCM',top:45,left:38,pDir:'top'},{id:'p5',label:'RCM',top:45,left:62,pDir:'top'},{id:'p6',label:'RM',top:40,left:85,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LM',top:45,left:15,pDir:'top'},{id:'p5',label:'LCM',top:50,left:38,pDir:'top'},{id:'p6',label:'RCM',top:50,left:62,pDir:'top'},{id:'p7',label:'RM',top:45,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
+            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'CM',top:52,left:28,pDir:'top'},{id:'p6',label:'CM',top:52,left:72,pDir:'top'},{id:'p7',label:'CDM',top:65,left:50,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:78,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92.5,left:50,pDir:'top'}],
             '352': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:50,left:15,pDir:'top'},{id:'p5',label:'LCM',top:55,left:35,pDir:'top'},{id:'p6',label:'RCM',top:55,left:65,pDir:'top'},{id:'p7',label:'RM',top:50,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
             '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LWB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RWB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
         };
@@ -403,7 +403,6 @@
             footerName.textContent = input.value.trim().toUpperCase() || "MY TEAM";
         }
 
-        // AI 추천 로직 수정 (입력값 실시간 반영 및 최적 포지션 산출)
         function recommendPosition() {
             const stats = {};
             statsList.forEach(s => { 
@@ -426,7 +425,6 @@
 
             const best = logic.reduce((prev, current) => (prev.score >= current.score) ? prev : current);
             
-            // UI 업데이트
             const posEl = document.getElementById('recommended-pos');
             const descEl = document.getElementById('recommended-desc');
             
