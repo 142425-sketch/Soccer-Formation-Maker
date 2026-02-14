@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>전략 보드 프로 v.1.4 </title>
+    <title>전략 보드 프로 - v.1.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -22,7 +22,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 숫자 화살표 제거 */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -112,6 +111,8 @@
             transition: top 0.5s ease, left 0.5s ease;
         }
 
+        .player-node:hover { z-index: 100; }
+
         .player-visual {
             width: 36px;
             height: 36px;
@@ -127,6 +128,7 @@
             font-size: 11px;
             position: relative;
             z-index: 2;
+            cursor: pointer;
         }
 
         .player-label-wrap {
@@ -196,9 +198,11 @@
             display: none;
             box-shadow: 0 10px 25px rgba(0,0,0,0.8);
             z-index: 100;
+            /* 요청 사항: 스펙 박스는 아이콘 밑으로 */
+            top: 100%; 
+            margin-top: 40px; 
         }
-        .spec-popup-top { bottom: 100%; margin-bottom: 8px; }
-        .spec-popup-bottom { top: 100%; margin-top: 8px; }
+        
         .player-node:hover .spec-popup { display: block; }
         
         .spec-row {
@@ -246,7 +250,7 @@
 
     <div id="toast">복사되었습니다!</div>
 
-    <header class="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
+    <header class="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
         <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
             <div class="flex-1">
                 <input type="text" id="team-name-input" placeholder="팀 이름을 입력하세요" value="My Team" oninput="updateFooterName()" class="bg-transparent border-b border-zinc-800 outline-none focus:border-white text-lg font-black italic tracking-tighter text-white uppercase w-full max-w-[200px] mb-0.5">
@@ -269,7 +273,6 @@
     </header>
 
     <main class="max-w-5xl mx-auto p-4 flex flex-col lg:flex-row gap-6 pb-40">
-        
         <div class="w-full lg:w-1/2 shrink-0">
             <div id="capture-area">
                 <div class="pitch" id="pitch">
@@ -344,14 +347,17 @@
     </main>
 
     <div class="fixed bottom-0 left-0 right-0 p-4 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800 z-50">
-        <div class="max-w-5xl mx-auto flex gap-2">
+        <div class="max-w-5xl mx-auto flex gap-2 overflow-x-auto no-scrollbar">
             <button onclick="downloadImage()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-4 py-4 rounded-xl text-[10px] uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0">
                 이미지 저장
             </button>
-            <button onclick="setMode(true)" class="mode-edit flex-1 bg-white text-black font-black py-4 rounded-xl text-xs uppercase shadow-xl hover:bg-zinc-200 active:scale-95 transition-all flex items-center justify-center">
+            <button onclick="shareStrategy()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-4 rounded-xl text-[10px] uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0">
+                전략 공유
+            </button>
+            <button onclick="setMode(true)" class="mode-edit flex-1 min-w-[120px] bg-white text-black font-black py-4 rounded-xl text-xs uppercase shadow-xl hover:bg-zinc-200 active:scale-95 transition-all flex items-center justify-center">
                 전략 확정하기
             </button>
-            <button onclick="sendStrategy()" class="mode-view flex-1 bg-blue-600 text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 uppercase tracking-wide">
+            <button onclick="sendStrategy()" class="mode-view flex-1 min-w-[120px] bg-blue-600 text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 uppercase tracking-wide">
                 전략 텍스트 복사
             </button>
             <button onclick="setMode(false)" class="mode-view bg-zinc-800 text-white font-bold px-6 py-4 rounded-xl text-[10px] uppercase shrink-0 flex items-center justify-center hover:bg-zinc-700 transition-all">
@@ -361,14 +367,15 @@
     </div>
 
     <script>
+        // 포메이션 데이터 (간격 최적화 및 352 수비 라인 상향)
         const formationData = {
-            '433': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:25,pDir:'top'},{id:'p5',label:'CM',top:45,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:75,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '433A': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'LCM',top:50,left:30,pDir:'top'},{id:'p6',label:'RCM',top:50,left:70,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '433D': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'LCM',top:40,left:30,pDir:'top'},{id:'p5',label:'CDM',top:58,left:50,pDir:'top'},{id:'p6',label:'RCM',top:40,left:70,pDir:'top'},{id:'p7',label:'LB',top:72,left:15,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RB',top:72,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '442': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'LM',top:40,left:15,pDir:'top'},{id:'p4',label:'LCM',top:45,left:38,pDir:'top'},{id:'p5',label:'RCM',top:45,left:62,pDir:'top'},{id:'p6',label:'RM',top:40,left:85,pDir:'top'},{id:'p7',label:'LB',top:70,left:15,pDir:'top'},{id:'p8',label:'LCB',top:75,left:38,pDir:'top'},{id:'p9',label:'RCB',top:75,left:62,pDir:'top'},{id:'p10',label:'RB',top:70,left:85,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '343': [{id:'p1',label:'LW',top:15,left:20,pDir:'bottom'},{id:'p2',label:'ST',top:10,left:50,pDir:'bottom'},{id:'p3',label:'RW',top:15,left:80,pDir:'bottom'},{id:'p4',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p5',label:'CM',top:52,left:28,pDir:'top'},{id:'p6',label:'CM',top:52,left:72,pDir:'top'},{id:'p7',label:'CDM',top:65,left:50,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:78,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:91.5,left:50,pDir:'top'}],
-            '352': [{id:'p1',label:'LS',top:12,left:35,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:65,pDir:'bottom'},{id:'p3',label:'CAM',top:35,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:50,left:15,pDir:'top'},{id:'p5',label:'LCM',top:55,left:35,pDir:'top'},{id:'p6',label:'RCM',top:55,left:65,pDir:'top'},{id:'p7',label:'RM',top:50,left:85,pDir:'top'},{id:'p8',label:'LCB',top:78,left:25,pDir:'top'},{id:'p9',label:'CB',top:82,left:50,pDir:'top'},{id:'p10',label:'RCB',top:78,left:75,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}],
-            '41212': [{id:'p1',label:'LS',top:12,left:38,pDir:'bottom'},{id:'p2',label:'RS',top:12,left:62,pDir:'bottom'},{id:'p3',label:'CAM',top:32,left:50,pDir:'bottom'},{id:'p4',label:'LM',top:48,left:20,pDir:'top'},{id:'p5',label:'RM',top:48,left:80,pDir:'top'},{id:'p6',label:'CDM',top:62,left:50,pDir:'top'},{id:'p7',label:'LWB',top:70,left:12,pDir:'top'},{id:'p8',label:'LCB',top:78,left:38,pDir:'top'},{id:'p9',label:'RCB',top:78,left:62,pDir:'top'},{id:'p10',label:'RWB',top:70,left:88,pDir:'top'},{id:'p11',label:'GK',top:92,left:50,pDir:'top'}]
+            '433': [{id:'p1',label:'LW',top:12,left:15},{id:'p2',label:'ST',top:8,left:50},{id:'p3',label:'RW',top:12,left:85},{id:'p4',label:'LCM',top:38,left:22},{id:'p5',label:'CM',top:42,left:50},{id:'p6',label:'RCM',top:38,left:78},{id:'p7',label:'LB',top:65,left:12},{id:'p8',label:'LCB',top:72,left:36},{id:'p9',label:'RCB',top:72,left:64},{id:'p10',label:'RB',top:65,left:88},{id:'p11',label:'GK',top:92,left:50}],
+            '433A': [{id:'p1',label:'LW',top:12,left:18},{id:'p2',label:'ST',top:8,left:50},{id:'p3',label:'RW',top:12,left:82},{id:'p4',label:'CAM',top:30,left:50},{id:'p5',label:'LCM',top:48,left:25},{id:'p6',label:'RCM',top:48,left:75},{id:'p7',label:'LB',top:68,left:12},{id:'p8',label:'LCB',top:76,left:36},{id:'p9',label:'RCB',top:76,left:64},{id:'p10',label:'RB',top:68,left:88},{id:'p11',label:'GK',top:92,left:50}],
+            '433D': [{id:'p1',label:'LW',top:12,left:18},{id:'p2',label:'ST',top:8,left:50},{id:'p3',label:'RW',top:12,left:82},{id:'p4',label:'LCM',top:38,left:28},{id:'p5',label:'CDM',top:55,left:50},{id:'p6',label:'RCM',top:38,left:72},{id:'p7',label:'LB',top:68,left:12},{id:'p8',label:'LCB',top:76,left:36},{id:'p9',label:'RCB',top:76,left:64},{id:'p10',label:'RB',top:68,left:88},{id:'p11',label:'GK',top:92,left:50}],
+            '442': [{id:'p1',label:'LS',top:10,left:32},{id:'p2',label:'RS',top:10,left:68},{id:'p3',label:'LM',top:38,left:12},{id:'p4',label:'LCM',top:42,left:36},{id:'p5',label:'RCM',top:42,left:64},{id:'p6',label:'RM',top:38,left:88},{id:'p7',label:'LB',top:68,left:12},{id:'p8',label:'LCB',top:75,left:36},{id:'p9',label:'RCB',top:75,left:64},{id:'p10',label:'RB',top:68,left:88},{id:'p11',label:'GK',top:92,left:50}],
+            '343': [{id:'p1',label:'LW',top:12,left:18},{id:'p2',label:'ST',top:8,left:50},{id:'p3',label:'RW',top:12,left:82},{id:'p4',label:'CAM',top:30,left:50},{id:'p5',label:'CM',top:50,left:25},{id:'p6',label:'CM',top:50,left:75},{id:'p7',label:'CDM',top:62,left:50},{id:'p8',label:'LCB',top:78,left:22},{id:'p9',label:'CB',top:78,left:50},{id:'p10',label:'RCB',top:78,left:78},{id:'p11',label:'GK',top:92,left:50}],
+            '352': [{id:'p1',label:'LS',top:10,left:32},{id:'p2',label:'RS',top:10,left:68},{id:'p3',label:'CAM',top:32,left:50},{id:'p4',label:'LM',top:48,left:12},{id:'p5',label:'LCM',top:52,left:35},{id:'p6',label:'RCM',top:52,left:65},{id:'p7',label:'RM',top:48,left:88},{id:'p8',label:'LCB',top:70,left:22},{id:'p9',label:'CB',top:73,left:50},{id:'p10',label:'RCB',top:70,left:78},{id:'p11',label:'GK',top:92,left:50}],
+            '41212': [{id:'p1',label:'LS',top:10,left:35},{id:'p2',label:'RS',top:10,left:65},{id:'p3',label:'CAM',top:28,left:50},{id:'p4',label:'LM',top:45,left:15},{id:'p5',label:'RM',top:45,left:85},{id:'p6',label:'CDM',top:58,left:50},{id:'p7',label:'LWB',top:68,left:10},{id:'p8',label:'LCB',top:78,left:36},{id:'p9',label:'RCB',top:78,left:64},{id:'p10',label:'RWB',top:68,left:90},{id:'p11',label:'GK',top:92,left:50}]
         };
 
         const commonStats = ['속도', '슛', '패스', '드리블', '수비', '피지컬'];
@@ -406,8 +413,10 @@
                 card.innerHTML = `
                     <div class="flex items-center gap-2 mb-3">
                         <span class="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded min-w-[32px] text-center" id="form-pos-label-${id}">-</span>
-                        <input type="number" id="input-no-${id}" placeholder="No." class="bg-zinc-950 border border-zinc-800 rounded p-1 text-[10px] w-12 text-center font-bold text-red-500 outline-none focus:border-red-500" inputmode="numeric">
-                        <input type="text" id="input-name-${id}" data-pos="${id}" data-type="name" placeholder="선수 성명" class="bg-transparent border-b border-zinc-800 outline-none focus:border-red-500 text-xs w-full py-1 text-white">
+                        <div class="relative w-14">
+                            <input type="number" id="input-no-${id}" placeholder="번호" oninput="formatNumberInput(this); sync();" class="bg-zinc-950 border border-zinc-800 rounded p-1 text-[10px] w-full text-center font-bold text-red-500 outline-none focus:border-red-500" inputmode="numeric">
+                        </div>
+                        <input type="text" id="input-name-${id}" data-pos="${id}" data-type="name" placeholder="선수 성명" oninput="sync()" class="bg-transparent border-b border-zinc-800 outline-none focus:border-red-500 text-xs w-full py-1 text-white">
                     </div>
                     <div id="stat-grid-${id}" class="grid grid-cols-3 gap-1.5 mb-3"></div>
                     <div class="flex gap-2 pt-2 border-t border-zinc-800">
@@ -424,9 +433,15 @@
                 inputFields.appendChild(card);
             }
 
-            changeFormation('433');
+            loadFromURL();
             recommendPosition();
             updateFooterName();
+        }
+
+        function formatNumberInput(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if (val.length > 3) val = val.substring(0, 3);
+            el.value = val;
         }
 
         function updateFooterName() {
@@ -481,10 +496,6 @@
                 node.style.top = `${pos.top}%`;
                 node.style.left = `${pos.left}%`;
                 document.getElementById(`form-pos-label-${pos.id}`).textContent = pos.label;
-                
-                const popup = document.getElementById(`popup-${pos.id}`);
-                popup.className = `spec-popup ${pos.pDir === 'bottom' ? 'spec-popup-bottom' : 'spec-popup-top'}`;
-
                 updateStatFields(pos.id, pos.label);
             });
             sync();
@@ -495,10 +506,16 @@
             const popupContent = document.getElementById(`popup-content-${id}`);
             const currentStats = posLabel === 'GK' ? gkStats : commonStats;
             
+            const oldVals = {};
+            [...commonStats, ...gkStats].forEach(s => {
+                const el = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
+                if (el) oldVals[s] = el.value;
+            });
+
             grid.innerHTML = currentStats.map(s => `
                 <div class="flex flex-col items-center bg-zinc-950 p-1 rounded border border-zinc-800">
                     <label class="text-[8px] text-zinc-500">${s}</label>
-                    <input type="number" data-pos="${id}" data-stat="${s}" value="0" min="0" max="10" onfocus="this.select()" oninput="limitValue(this); sync();" class="bg-transparent w-full text-center text-[10px] font-bold outline-none text-white" inputmode="numeric">
+                    <input type="number" data-pos="${id}" data-stat="${s}" value="${oldVals[s] || 0}" min="0" max="10" onfocus="this.select()" oninput="limitValue(this); sync();" class="bg-transparent w-full text-center text-[10px] font-bold outline-none text-white" inputmode="numeric">
                 </div>
             `).join('');
 
@@ -542,14 +559,13 @@
                 if (name) {
                     playersMap[id].classList.remove('is-empty');
                     label.textContent = name;
-                    numBox.textContent = number || "??";
+                    numBox.textContent = number ? `No.${number}` : "??";
                 } else {
                     playersMap[id].classList.add('is-empty');
                     label.textContent = '빈 자리';
                     numBox.textContent = "-";
                 }
 
-                // 스탯 동기화
                 const activeStats = (posInfo && posInfo.label === 'GK') ? gkStats : commonStats;
                 activeStats.forEach(s => {
                     const valInput = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
@@ -557,7 +573,6 @@
                     if (valDisplay) valDisplay.textContent = valInput ? valInput.value : '0';
                 });
                 
-                // 발 정보 동기화
                 footStats.forEach(f => {
                     const valInput = document.querySelector(`input[data-pos="${id}"][data-stat="${f}"]`);
                     const valDisplay = document.getElementById(`val-${id}-${f}`);
@@ -577,14 +592,87 @@
             if (isReadonly) window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function shareStrategy() {
+            const state = {
+                t: document.getElementById('team-name-input').value,
+                f: currentFormation,
+                p: []
+            };
+            
+            for(let i=1; i<=11; i++) {
+                const id = `p${i}`;
+                const pData = {
+                    n: document.getElementById(`input-name-${id}`).value,
+                    no: document.getElementById(`input-no-${id}`).value,
+                    s: {}
+                };
+                
+                const posLabel = formationData[currentFormation].find(pos => pos.id === id).label;
+                const stats = posLabel === 'GK' ? gkStats : commonStats;
+                stats.forEach(s => {
+                    pData.s[s] = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`).value;
+                });
+                pData.f = {
+                    j: document.querySelector(`input[data-pos="${id}"][data-stat="주발"]`).value,
+                    y: document.querySelector(`input[data-pos="${id}"][data-stat="약발"]`).value
+                };
+                state.p.push(pData);
+            }
+
+            const encoded = btoa(encodeURIComponent(JSON.stringify(state)));
+            const url = window.location.origin + window.location.pathname + '?data=' + encoded;
+            
+            const temp = document.createElement('textarea');
+            temp.value = url; document.body.appendChild(temp);
+            temp.select(); document.execCommand('copy');
+            document.body.removeChild(temp);
+            
+            showToast("공유 링크가 복사되었습니다!");
+        }
+
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            if (data) {
+                try {
+                    const state = JSON.parse(decodeURIComponent(atob(data)));
+                    document.getElementById('team-name-input').value = state.t;
+                    currentFormation = state.f;
+                    changeFormation(state.f);
+                    
+                    state.p.forEach((p, idx) => {
+                        const id = `p${idx+1}`;
+                        document.getElementById(`input-name-${id}`).value = p.n;
+                        document.getElementById(`input-no-${id}`).value = p.no;
+                        Object.keys(p.s).forEach(s => {
+                            const el = document.querySelector(`input[data-pos="${id}"][data-stat="${s}"]`);
+                            if (el) el.value = p.s[s];
+                        });
+                        document.querySelector(`input[data-pos="${id}"][data-stat="주발"]`).value = p.f.j;
+                        document.querySelector(`input[data-pos="${id}"][data-stat="약발"]`).value = p.f.y;
+                    });
+                    sync();
+                } catch(e) {
+                    console.error("복구 실패", e);
+                    changeFormation('433');
+                }
+            } else {
+                changeFormation('433');
+            }
+        }
+
+        function showToast(msg, bg = '#3b82f6') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.background = bg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+        }
+
         async function downloadImage() {
             const captureArea = document.getElementById('capture-area');
-            const toast = document.getElementById('toast');
             const teamName = document.getElementById('team-name-input').value.trim() || "MyTeam";
-            
-            toast.textContent = "이미지 생성 중...";
-            toast.style.display = 'block';
-            toast.style.background = '#3b82f6';
+            showToast("이미지 생성 중...");
 
             try {
                 const canvas = await html2canvas(captureArea, { 
@@ -596,13 +684,9 @@
                 link.download = `Strategy-${teamName}-${currentFormation}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                toast.textContent = "저장 완료!";
-                toast.style.background = '#22c55e';
+                showToast("저장 완료!", '#22c55e');
             } catch (err) {
-                toast.textContent = "저장 실패";
-                toast.style.background = '#ef4444';
-            } finally {
-                setTimeout(() => { toast.style.display = 'none'; }, 2000);
+                showToast("저장 실패", '#ef4444');
             }
         }
 
@@ -610,25 +694,20 @@
             const teamName = document.getElementById('team-name-input').value.trim() || "My Team";
             let msg = `⚽ [팀: ${teamName} | ${currentFormation}]\n\n`;
             formationData[currentFormation].forEach(pos => {
-                const nameInput = document.getElementById(`input-name-${pos.id}`);
-                const numInput = document.getElementById(`input-no-${pos.id}`);
-                const mainFoot = document.querySelector(`input[data-pos="${pos.id}"][data-stat="주발"]`).value;
-                const weakFoot = document.querySelector(`input[data-pos="${pos.id}"][data-stat="약발"]`).value;
-                const name = nameInput.value.trim() || "미배정";
-                const no = numInput.value.trim() ? `(No.${numInput.value.trim()})` : "";
-                msg += `${pos.label}: ${name} ${no} [발:${mainFoot}/${weakFoot}]\n`;
+                const name = document.getElementById(`input-name-${pos.id}`).value.trim() || "미배정";
+                const no = document.getElementById(`input-no-${pos.id}`).value.trim();
+                const j = document.querySelector(`input[data-pos="${pos.id}"][data-stat="주발"]`).value;
+                const y = document.querySelector(`input[data-pos="${pos.id}"][data-stat="약발"]`).value;
+                msg += `${pos.label}: ${name} ${no ? '(No.'+no+')' : ''} [발:${j}/${y}]\n`;
             });
             const temp = document.createElement('textarea');
             temp.value = msg; document.body.appendChild(temp);
             temp.select(); document.execCommand('copy');
             document.body.removeChild(temp);
-            const toast = document.getElementById('toast');
-            toast.textContent = "전략 복사 완료!";
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 2000);
+            showToast("전략 텍스트 복사 완료!");
         }
 
         window.onload = init;
     </script>
 </body>
-</html>
+    </html>
